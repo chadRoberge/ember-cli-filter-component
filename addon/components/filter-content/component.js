@@ -7,7 +7,7 @@ import layout from './template';
  *              based on basic matching
  * @extends     external:Ember.Component
  */
-export default Ember.Component.extend ({
+export default Ember.Component.extend({
 
   /* properties
   ------------------------ */
@@ -69,27 +69,27 @@ export default Ember.Component.extend ({
    * @description normalize `properties` and return them as an array
    * @returns     {array} an array of normalized property indices
    */
-  normalizedProperties: Ember.computed ('properties', function () {
+  normalizedProperties: Ember.computed('properties', function() {
 
     try {
 
-      var properties = this.get ('properties') || '';
+      var properties = this.get('properties') || '';
 
       return !properties ? [] : properties
         // replace invalid characters
-        .replace (/[^\w\s\@\.\-]+/g, '')
+        .replace(/[^\w\s\@\.\-]+/g, '')
         // replace multiple periods with single periods
-        .replace (/[\.]{2,}/g, '.')
+        .replace(/[\.]{2,}/g, '.')
         // normalize delimiter to single spaces
-        .replace (/(\.+)?\s\1?/g, ' ')
-        .split (/\s+/g)
+        .replace(/(\.+)?\s\1?/g, ' ')
+        .split(/\s+/g)
         // remove empty items
-        .filter (z => z !== '');
+        .filter(z => z !== '');
 
-      } catch (exception) {
+    } catch (exception) {
 
-        if (window.console) { window.console.error ('normalizedProperties', exception); }
-      }
+      if (window.console) { window.console.error('normalizedProperties', exception); }
+    }
   }),
 
   /**
@@ -99,17 +99,17 @@ export default Ember.Component.extend ({
    * @returns     {string}
    * @todo        is there a better solution for forward slashes?
    */
-  normalizedQuery: Ember.computed ('query', function () {
+  normalizedQuery: Ember.computed('query', function() {
 
     try {
 
-      var query = this.get ('query');
+      var query = this.get('query');
 
-      return Ember.isPresent (query) ? query.replace (/\\+/g, '') : '';
+      return Ember.isPresent(query) ? query.replace(/\\+/g, '') : '';
 
     } catch (exception) {
 
-      if (window.console) { window.console.error ('normalizedQuery', exception); }
+      if (window.console) { window.console.error('normalizedQuery', exception); }
     }
   }),
 
@@ -120,16 +120,16 @@ export default Ember.Component.extend ({
    * @name        setFilterTimer
    * @description an observer that passes `debounceFilter` to `Ember.run.later`
    */
-  setFilterTimer: Ember.observer ('content', 'normalizedProperties', 'normalizedQuery', function () {
+  setFilterTimer: Ember.observer('content', 'normalizedProperties', 'normalizedQuery', function() {
 
     try {
 
       // Ember.run.cancel (this.get ('debounceFilter'));
-      this.set ('debounceFilter', Ember.run.debounce (this, this.applyFilter, parseInt (this.get ('timeout'), 10), false));
+      this.set('debounceFilter', Ember.run.debounce(this, this.applyFilter, parseInt(this.get('timeout'), 10), false));
 
     } catch (exception) {
 
-      if (window.console) { window.console.error ('setFilterTimer', exception); }
+      if (window.console) { window.console.error('setFilterTimer', exception); }
     }
   }),
 
@@ -144,23 +144,26 @@ export default Ember.Component.extend ({
    * @param       {(number|string)} b
    * @returns     {boolean} whether there was a match between the passed values
    */
-  aContainsB (a, b) {
+  aContainsB(a, b) {
 
     try {
 
       var matched = false;
       var matchTypes = ['boolean', 'number', 'string'];
 
-      if (matchTypes.indexOf (Ember.typeOf (a)) !== -1 && matchTypes.indexOf (Ember.typeOf (b)) !== -1) {
-
-        matched = Ember.inspect (a).toLowerCase ().match (Ember.inspect (b).toLowerCase ()) !== null;
+      if (matchTypes.indexOf(Ember.typeOf(a)) !== -1 && matchTypes.indexOf(Ember.typeOf(b)) !== -1) {
+        // console.log(a, b);
+        let regex = new RegExp(`${b}`, 'g');
+        // console.log(a.match(regex));
+        matched = a.match(regex) ? true : false;
+        // matched = Ember.inspect (a).toLowerCase ().match (Ember.inspect (b).toLowerCase ()) !== null;
       }
 
       return matched;
 
     } catch (exception) {
 
-      if (window.console) { window.console.error ('aContainsB', exception); }
+      if (window.console) { window.console.error('aContainsB', exception); }
     }
   },
 
@@ -168,34 +171,34 @@ export default Ember.Component.extend ({
    * @name        applyFilter
    * @description filters for `query` against value(s) of `properties` in `content`
    */
-  applyFilter () {
+  applyFilter() {
 
     try {
 
-      var content = this.get ('content') || [];
+      var content = this.get('content') || [];
       var matched = false;
-      var properties = this.get ('normalizedProperties') || [];
+      var properties = this.get('normalizedProperties') || [];
       var propertiesTmp = [];
-      var query = this.get ('normalizedQuery') || '';
+      var query = this.get('normalizedQuery') || '';
       var values = [];
 
       if (!content || !properties) { return content ? content : []; }
 
       if (content.length && properties.length && !!query) {
 
-        content = content.filter (item => {
+        content = content.filter(item => {
 
           matched = false;
-          propertiesTmp = properties.slice (0);
+          propertiesTmp = properties.slice(0);
 
-          propertiesTmp.forEach (prop => {
+          propertiesTmp.forEach(prop => {
 
-            values = values.concat (this.getContentProps (item, prop) || []);
+            values = values.concat(this.getContentProps(item, prop) || []);
           });
 
           while (matched === false && values.length) {
 
-            matched = this.aContainsB (values.shift (), query) ? true : false;
+            matched = this.aContainsB(values.shift(), query) ? true : false;
           }
 
           values = [];
@@ -204,11 +207,11 @@ export default Ember.Component.extend ({
         });
       }
 
-      this.set ('filteredContent', content);
+      this.set('filteredContent', content);
 
     } catch (exception) {
 
-      if (window.console) { window.console.error ('applyFilter', exception); }
+      if (window.console) { window.console.error('applyFilter', exception); }
     }
   },
 
@@ -219,11 +222,11 @@ export default Ember.Component.extend ({
    * @param       {string} property dot notated index
    * @returns     {array} an array of values matching `property`'s index
    */
-  getContentProps (item, property, inception = 0) {
+  getContentProps(item, property, inception = 0) {
 
     try {
 
-      var propArr = property.split (/\.+/g);// (/\.?\@each\.?/g);
+      var propArr = property.split(/\.+/g); // (/\.?\@each\.?/g);
       var prop = '';
       var values = [];
       var z = [];
@@ -231,28 +234,28 @@ export default Ember.Component.extend ({
       if (!propArr.length) { return []; }
       if (inception > 100) { throw `recursing too far, limit is 100 levels`; }
 
-      prop = propArr.shift ();
+      prop = propArr.shift();
 
       // get array items
       if (prop === '@each') {
 
         if (item.forEach) {
 
-          item.forEach (i => values = values.concat (propArr.length ? this.getContentProps (i, propArr.join ('.'), ++inception) : i));
+          item.forEach(i => values = values.concat(propArr.length ? this.getContentProps(i, propArr.join('.'), ++inception) : i));
         }
 
-      // get item property
+        // get item property
       } else {
 
-        z = Ember.get (item, prop) || [];
-        values = values.concat (propArr.length ? this.getContentProps (z, propArr.join ('.'), ++inception) : z);
+        z = Ember.get(item, prop) || [];
+        values = values.concat(propArr.length ? this.getContentProps(z, propArr.join('.'), ++inception) : z);
       }
 
       return values && !!values.length ? values : [];
 
     } catch (exception) {
 
-      if (window.console) { window.console.error ('getContentProps', exception); }
+      if (window.console) { window.console.error('getContentProps', exception); }
     }
   },
 
@@ -260,10 +263,10 @@ export default Ember.Component.extend ({
    * @name        init
    * @description n/a
    */
-  init () {
+  init() {
 
-    this._super ();
-    this.applyFilter ();
+    this._super();
+    this.applyFilter();
   },
 
   /**
@@ -271,9 +274,9 @@ export default Ember.Component.extend ({
    * @todo        this may be elligible for deprecation
    * @description runs before the component is destroyed and tears things down
    */
-  willDestroy () {
+  willDestroy() {
 
-    this._super ();
-    Ember.run.cancel (this.get ('debounceFilter'));
+    this._super();
+    Ember.run.cancel(this.get('debounceFilter'));
   }
 });
